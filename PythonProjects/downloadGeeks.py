@@ -7,8 +7,13 @@ import shutil
 #|   Created By Sudhanshu Shekhar         |
 #|----------------------------------------|
 
-
-url = "http://www.geeksforgeeks.org"
+# How to Use:
+#    1) Copy script to a suitable folder in your linux distribution
+#    2) Run the command : python downloadGeeks.py
+#    3) A folder is created with all the default tags and corresponding programs
+#    4) To add or remove any tag, simply edit the keywords list
+#
+URL = "http://www.geeksforgeeks.org"
 #Add more keywords here if needed. The script creates a folder for each tag and downloads all files related to the same
 keywords = ["Dynamic Programming","Greedy Algorithms","Backtracking","Pattern Searching", "Divide & Conquer"
 		, "Mathematical Algorithms", "Recursion","Geometric Algorithms"]
@@ -45,7 +50,7 @@ print "===================================Starting Download=====================
 createGeeksFolder(defaultPath)
 hashLinkToKeyWord = {}
 LinksToCrawl=[]
-getLinksFromTagNames(url,keywords,LinksToCrawl,hashLinkToKeyWord)
+getLinksFromTagNames(URL,keywords,LinksToCrawl,hashLinkToKeyWord)
 #got the link corresponding to each tag
 
 #now we loop through all the tagged pages
