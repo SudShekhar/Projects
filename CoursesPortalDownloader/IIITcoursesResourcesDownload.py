@@ -113,8 +113,8 @@ def FindRegisteredCourses1(driver):
 			
 myProxy = "http://proxy.iiit.ac.in:8080"
 #driver = beginFirefox(myProxy)
-USERNAME = "sudhanshu.shekhar@students.iiit.ac.in"
-PASSWORD= "agnirocks"
+USERNAME = "ABC@students.iiit.ac.in"
+PASSWORD= "your_password"
 #driver = connectToisas(driver,USERNAME,PASSWORD)
 #now I have the main logged in page of isas ; need to find out all the registered course links
 
