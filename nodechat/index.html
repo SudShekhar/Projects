@@ -1,0 +1,268 @@
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script>
+	var socket = io.connect('http://localhost:8080');
+	var COLOR = "#0000FF";
+	var positions=new  Array(20);
+	var xcor=new  Array(20);
+	var ycor=new  Array(20);
+	var player;
+	var MYTurn;
+	//Function that just sets up the Arrays xcor and ycor
+function ini(){
+	
+	for(var i=0;i<18;i++)
+		positions[i]=i;
+	x=35;
+	y=30;
+	for(var i=0;i<6;i++,x=x+50)
+	{
+		xcor[i]=x;
+		ycor[i]=y;
+	}
+	x=285;
+	y=70;
+	for(var i=6;i<10;i++,y+=40)
+	{
+		xcor[i]=x;
+		ycor[i]=y;
+	}
+	x=235;
+	y-=40;
+	for(var i=10;i<15;i++,x=x-50)
+	{
+		xcor[i]=x;
+		ycor[i]=y;
+	}
+	x=x+50;
+	y=y-40;
+	for(var i=15;i<=17;i++,y=y-40)
+	{
+		xcor[i]=x;
+		ycor[i]=y;
+	}
+}
+
+//Client class --> We need to do all our work here
+/*
+*	I have created this class so that it stores all the state variables we need it to	
+*	drawGoti() draws the object on the required place
+*
+*/
+	function client(){
+		var self = this;
+		var username;
+		var coord;
+		var colr;
+		this.init = function(name,coord,color){
+			self.coord = coord;
+			self.username = name;
+			self.colr = color;
+			self.drawGoti();
+		};
+		this.changeColor = function(colr){
+			self.colr = colr;
+		};
+		this.move = function(coord){
+				self.coord = (self.coord + coord)%18;
+				self.drawGoti();
+				MYTurn = false;
+				socket.emit('canvasMoved',xx,self.colr);
+		};
+
+		//draws the board at the present points coordinates
+		this.drawGoti = function(){
+			drawBoard();
+			drawCanvas(Xcoord,EnemyColor);
+			var canvas = document.getElementById('canvas');
+			var context = canvas.getContext('2d');
+			//context.save();
+			context.strokeStyle = 'black';
+			context.stroke();	
+			context.fillStyle = self.colr;
+			xx = self.coord;
+			context.fillRect(xcor[xx],ycor[xx],10,10);
+			
+			//context.restore();
+		};
+	}
+
+	// on connection to server, ask for user's name with an anonymous callback
+/*
+*	We initialize the arrays and create a new player instance on connection. 
+*/	
+var EnemyColor;
+	
+	socket.on('connect', function(){
+		// call the server-side function 'adduser' and send one parameter (value of prompt)
+		ini();
+		player = new client();
+		var playerName = prompt("What's your name?");
+		player.init(playerName,0,"#FF0000");
+		drawBoard();
+		MYTurn = false;
+		socket.emit('adduser',playerName);
+	});
+/*
+* Server sends the client its alloted color here. And the client draws its goti now.
+*/
+
+	socket.on('attachColor',function (colr,coord){
+		COLOR = colr;
+		player.changeColor(colr);
+		player.move(0);
+	});
+	// listener, whenever the server emits 'updatechat', this updates the chat body
+	socket.on('updatechat', function (username, data) {
+		$('#conversation').append('<b>'+username + ':</b> ' +data +  '<br>');
+		//MYTurn = true;
+		//COLOR = colr;
+	});
+
+
+//============================================================================================================
+/* listener function, whenever the server emits 'updateusers', this updates the username list
+*	
+* Data is the list which stores all the users available, theirs colors and can be used to store their coords too.
+*/	
+	socket.on('updateusers', function (data) {
+		$('#users').empty();
+		$.each(data, function(key, value) {
+			$('#users').append('<div>' + key + ' '+ value[1]+ '</div>');
+		});
+	});
+	socket.on('canvasMoved',function(x,colr){
+		console.log("Drawing the enemy");
+		Xcoord = x;
+		EnemyColor = colr;
+		MYTurn = true;
+		//drawCanvas(x,colr);
+		player.drawGoti();
+		//player.move(x);
+	});
+	//Variables used to represent the enemy coordinates.
+	var Xcoord = 2;
+	var Ycoord = 2;
+
+	// on load of page
+	$(function(){
+		
+		// when the client clicks SEND
+		$('#datasend').click( function() {
+			var message = $('#data').val();
+			$('#data').val('');
+			// tell server to execute 'sendchat' and send along one parameter
+			socket.emit('sendchat', message);
+		});
+
+		// when the client hits ENTER on their keyboard
+		$('#data').keypress(function(e) {
+			if(e.which == 13) {
+				$(this).blur();
+				$('#datasend').focus().click();
+			}
+		});
+		/*$('#myCanvas').click(function (e){
+			var canvasOffset=$("#myCanvas").offset();
+			var offsetX=canvasOffset.left;
+			var offsetY=canvasOffset.top;
+			x=parseInt(e.clientX - offsetX);
+   			y=parseInt(e.clientY - offsetY);
+			//alert('clicked something at ' + x+','+y);
+			socket.emit('canvasMoved',x,y);
+			Xcoord = x,Ycoord = y;
+			drawCanvas(x,y);
+		});*/
+	});
+//============================================================================================================	
+//Draws the Basic board. used after the init function	
+function drawBoard() {
+	// body...
+	console.log("Draw board called" );
+	var canvas = document.getElementById('canvas');
+	var context = canvas.getContext('2d');
+	var x=10;
+	var y=10;
+	context.beginPath();
+	for(var i=1;i<=6;i++)
+	{
+	context.rect(x, y, 50, 40);
+	context.fillStyle = 'white';
+	context.fill();
+	context.lineWidth = 2;
+	x=x+52;
+	 }
+	x=10;
+	y=178;
+	for(var i=1;i<=6;i++)
+	{
+	context.rect(x, y, 50, 40);
+	context.fillStyle = 'white';
+	context.fill();
+	context.lineWidth = 2;
+	x=x+52;
+	 }
+	x=10;
+	y=52;for(var i=1;i<=3;i++)
+	{
+	context.rect(x, y, 50, 40);
+	context.fillStyle = 'white';
+	context.fill();
+	context.lineWidth = 2;
+	y=y+42;
+	 }
+	x=270;
+	y=52;for(var i=1;i<=3;i++)
+	{
+	context.rect(x, y, 50, 40);
+	context.fillStyle = 'white';
+	context.fill();
+	context.lineWidth = 2;
+	y=y+42;
+	 }
+}
+//============================================================================================================
+//draws the Goti ==> Replaced by drawGoti() now.
+function drawCanvas(xx,colr){
+	yy=xx;
+	console.log("Drawing the other person at " + xx + ' with ' + colr);
+	var canvas = document.getElementById('canvas');
+	var context = canvas.getContext('2d');
+	context.strokeStyle = 'black';
+	context.stroke();
+	Xcoord = xx;
+	Ycoord = yy;	
+	context.fillStyle = colr;
+	context.fillRect(xcor[xx]-10,ycor[yy]-10,10,10);
+
+}
+
+//dice roll function====================================
+function diceRoll(){
+	var move = 1;
+	//drawCanvas(X,Y);
+	if(MYTurn == true)
+		player.move(move);
+	console.log('color is '+ COLOR);
+}
+</script>
+<html>
+<body>
+<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;overflow:scroll-y;">
+	<b>USERS</b>
+	<div id="users"></div>
+</div>
+<div style="float:left;width:300px;height:250px;overflow:scroll-y;padding:10px;">
+	<div id="conversation"></div>
+	<input id="data" style="width:200px;" />
+	<input type="button" id="datasend" value="send" />
+	<!--<canvas id="myCanvas" width="200" height="100" style="border:1px solid #000000;"> </canvas>-->
+	<input type="button" id = "rollDie" value="roll the dice" onclick ="diceRoll()"/>
+	</br>
+	</br>
+	<canvas id="canvas" width="420px" height="220px" style="background: #fff;     magrin:20px;"></canvas>
+</div>
+<div><p id = "log">"Hi this is crazy stuff" </p>
+</div>
+</body>
+</html>
