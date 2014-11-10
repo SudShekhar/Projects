@@ -132,5 +132,5 @@ def main(myProxy,USERNAME,PASSWORD):
 if __name__ == "__main__":
 	myProxy = "http://proxy.iiit.ac.in:8080"
 	USERNAME = "sudhanshu.shekhar@students.iiit.ac.in"
-	PASSWORD = "agnirocks"
+	PASSWORD = "*******"
 	main(myProxy,USERNAME,PASSWORD)
